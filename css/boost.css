@@ -3,6 +3,10 @@ html {
   font-family: 'Varela Round', sans-serif;
 }
 
+body {
+  margin: 0;
+}
+
 text {
   fill: white;
   text-anchor: middle;
@@ -28,7 +32,17 @@ rect.condition {
   margin-top: -25px;
 }
 
-.category rect {
+rect.condition:hover {
+  fill: #93CFC1;
+  cursor: pointer;
+}
+
+.condNode text {
+  pointer-events: none;
+}
+
+.category rect,
+.category rect:hover {
   fill: steelblue;
 }
 
