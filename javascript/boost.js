@@ -6,6 +6,7 @@ var conditions = {"diabetes":{"plant / herb":[["aloe vera","3","diabetes","diabe
 
 // maps from supplement types to hex colors
 var typeColors = {"plant / herb": "#648C69", "compound": "#B5B06B", "mineral": "#8C6E96", "enzyme": "#966F6E", "mineral": "#787878", "vitamin": "#B56B84", "other": "#6B85B5"};
+var typeHighlights = {"plant / herb": "#7FB385", "compound": "#D4CE7D", "mineral": "#B28CBF", "enzyme": "#C4918F", "mineral": "#B3B3B3", "vitamin": "#E084A3", "other": "#83A3DE"};
 
 
 /* Sets up the start screen to display health categories. */
@@ -44,6 +45,11 @@ function renderStartScreen() {
     .attr("x", leftOffsetText)
     .attr("y", topOffsetText)
     .text(function(d) { return d; });
+
+  $(".node").click(function() {
+    console.log('blah');
+    displayConditions($(this));
+  });
 }
 
 
@@ -169,18 +175,37 @@ function displayConditions(cat) {
 function displaySupplements(condition) {
   $(".categoryGraph").fadeOut();
   $(".conditionGraph").fadeOut();
+  $(".conditionGraph").unbind("click");
+  $(".condNode").unbind("click");
+  $(".back").show();
   $(".intro").text("Supplements used to treat " + condition);
 
   var typesToSupplements = conditions[condition];
   var i = 0;
+
+  var len = Object.keys(typesToSupplements).length;
+
   for (type in typesToSupplements) {
-    drawTypeGraph(condition, type, i++);
+    drawTypeGraph(condition, type, i++, len);
   }
 }
 
-function drawTypeGraph(condition, type, index) {
-  var x = index % 3 * 250 + 100;
-  var y = Math.floor(index / 3) * 200 + 150;
+function drawTypeGraph(condition, type, index, len) {
+  var x = 375;
+  var y = 150;
+
+  if (len == 2) {
+    if (index == 0) {
+      x = 250;
+    } else {
+      x = 500;
+    }
+  }
+
+  if (len > 2) {
+    x = index % 3 * 250 + 100;
+    y = Math.floor(index / 3) * 200 + 150;
+  }
 
   var supplements = conditions[condition][type];
 
@@ -230,25 +255,11 @@ function drawTypeGraph(condition, type, index) {
     .attr("class", "supplement")
     .attr("r", function(d, i) { return 30 + (d["supplement"][1] * 10)})
     .style("fill", typeColors[type]);
-    //.attr("rx", "30px")
-    //.attr("ry", "30px");
 
   node.append("text")
     .attr("y", function(d) { return parseInt(d["supplement"][1]) + 3; })
-    .style("font-size", function(d) { return parseInt(d["supplement"][1]) * 2 + 10; })
+    .style("font-size", function(d) { return parseInt(d["supplement"][1]) * 1.5 + 10; })
     .text(function(d) { return d.supplement[0]; });  
-
-  // d3.selectAll(".suppNode").each(function(d, i) {
-  //   var rect = this.childNodes[0];
-  //   var text = this.childNodes[1];
-
-  //   var textWidth = text.getBBox().width;
-  //   var rectWidth = textWidth + 40;
-  //   if (textWidth > suppWidth - 40) {
-  //     d3.select(rect).attr("width", rectWidth);
-  //     d3.select(text).attr("x", (rectWidth / 2));
-  //   }
-  // });
 
   force.on("tick", function() {
     link.attr("x1", function(d) { return parseFloat(d.source.x)})
@@ -267,6 +278,9 @@ function drawTypeGraph(condition, type, index) {
 
 renderStartScreen();
 
-$(".node").click(function() {
-  displayConditions($(this));
-});
+$(".back").click(function() {
+  $(".back").hide();
+  $(".typeGraph").remove();
+  $(".node").unbind("click");
+  renderStartScreen();
+})
