@@ -1,0 +1,59 @@
+html {
+  background-image: url('../crossword.png');
+  font-family: 'Varela Round', sans-serif;
+}
+
+text {
+  fill: white;
+  text-anchor: middle;
+  cursor: pointer;
+}
+
+.node rect {
+  fill: steelblue;
+  stroke: white;
+  stroke-width: 3;
+}
+
+.node rect:hover {
+  fill: #549FDE;
+  cursor: pointer;
+}
+
+rect.condition {
+  fill: #68948A;
+  stroke: white;
+  stroke-width: 3;
+  margin-left: -75px;
+  margin-top: -25px;
+}
+
+.category rect {
+  fill: steelblue;
+}
+
+line {
+  fill: black;
+  stroke: #777;
+  stroke-width: 2px;
+}
+
+h2 {
+  text-align: center;
+  margin-top: 60px;
+}
+
+#canvas {
+  width: 1500px;
+  position: absolute;
+  left: 50%;
+  margin-left: -750px;
+  margin-top: -200px;
+}
+
+.conditionGraph {
+  width: 1500px;
+  position: absolute;
+  left: 50%;
+  margin-left: -750px;
+}

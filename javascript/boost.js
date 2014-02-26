@@ -169,6 +169,7 @@ var supplements = [
 ["zinc","5","colds","infections","mineral","","1.85","10100","http://www.thecochranelibrary.com/details/file/1017735/CD001364.html","Cochrane Library"]];
 
 
+/* Processes the 2D array of supplements into categories and conditions objects. */
 function readCategoriesAndConditions() {
   for (var i = 0; i < supplements.length; ++i) {
     var supp = supplements[i];
@@ -181,12 +182,13 @@ function readCategoriesAndConditions() {
       if (cat !== "diabetes") {
         // initialize this category object if necessary
         if (!categories[cat]) {
-          categories[cat] = {};
+          categories[cat] = [];
         }
 
         for (var k = 0; k < conds.length; ++k) {
           var cond = conds[k];
-          categories[cat][cond] = true;
+          // If this category does not already exist
+          if (categories[cat].indexOf(cond) === -1) categories[cat].push(cond);
         }
       }
 
@@ -197,8 +199,153 @@ function readCategoriesAndConditions() {
       conditions[cond].push(supp);
     }
   }
+  console.log(JSON.stringify(categories));
+  console.log(conditions);
+}
+
+
+/* Sets up the start screen to display health categories. */
+function renderStartScreen() {
+  var leftOffset = 200;
+  var topOffset = 300;
+  var canvas = d3.select("#canvas")
+    .append("svg")
+    .attr("width", "100%")
+    .attr("height", "100%");
+
+  var nodes = Object.keys(categories);
+
+  var healthCategories = canvas.selectAll("rect.node")
+    .data(nodes)
+    .enter().append("g")
+    .attr("transform", function(d, i) {
+      return "translate(" + (Math.floor(i % 4) * 300 + leftOffset) + ", " + (Math.floor(i / 4) * 150 + topOffset) + ")";
+    })
+    .attr("class", "node")
+    .attr("x", function(d, i) { return Math.floor(i % 4) * 300 + leftOffset; })
+    .attr("y", function(d, i) { return Math.floor(i / 4) * 150 + topOffset; })
+    .attr("category", function(d) { return d; });
+
+  healthCategories.append("svg:rect")
+    .attr("rx", "30px")
+    .attr("ry", "30px")
+    .attr("width", 150)
+    .attr("height", 50);
+
+  var leftOffsetText = 76;
+  var topOffsetText = 31;
+
+  healthCategories.append("text")
+    .attr("x", leftOffsetText)
+    .attr("y", topOffsetText)
+    .text(function(d) { return d; });
 }
 
 readCategoriesAndConditions();
-console.log(categories);
-console.log(conditions);
+//console.log(categories);
+//console.log(conditions);
+renderStartScreen();
+
+$(".node").click(function() {
+  $(".conditionGraph").remove();
+  $(".node").not($(this)).fadeTo(200, .3);
+  $(this).css("opacity", 1);
+
+  var category = $(this).attr("category");
+
+  var conds = categories[category];
+
+  var categoryX = parseFloat($(".node[category=\"" + category + "\"]").attr("x"));
+  var categoryY = parseFloat($(".node[category=\"" + category + "\"]").attr("y"));
+
+  var nodes = [{"condition": category, "x": categoryX, "y": categoryY, "fixed": true}];
+
+  for (var i = 0; i < conds.length; ++i) {
+    nodes.push({"condition": conds[i]/*, "x": parseFloat(categoryX), "y": parseFloat(categoryY)*/});
+  }
+  
+  var links = [];
+  for (var i = 1; i < nodes.length; ++i) {
+    links.push({"source": 0, "target": i});
+  }
+
+  var width = categoryX * 2,
+      height = categoryY * 2;
+
+  console.log(width + ", " + height);
+
+  var force = d3.layout.force()
+    .charge(-1000)
+    .linkDistance(function() { return Math.random() * 200 + 100})
+    .linkStrength(1)
+    .gravity(0.05)
+    .size([1000, 1000]);
+
+  var graphSvg = d3.select("#canvas").append("svg")
+    .attr("width", 1000)
+    .attr("height", 1000)
+    .attr("class", "conditionGraph")
+    .attr("margin-left", -500 + categoryX)
+    .attr("margin-top", -500 + categoryY);
+
+  force
+    .nodes(nodes)
+    .links(links)
+    .start();
+
+  var link = graphSvg.selectAll(".link")
+    .data(links)
+    .enter().append("line")
+    .attr("class", "link");
+
+  var node = graphSvg.selectAll(".condNode")
+    .data(nodes)
+    .enter().append("g")
+    .attr("class", "condNode");
+
+  d3.select(".condNode").attr("class", "condNode category");
+
+  var condWidth = 150;
+  var condHeight = 50;
+
+  node.append("rect")
+    .attr("class", "condition")
+    .attr("width", condWidth)
+    .attr("height", condHeight)
+    .attr("rx", "30px")
+    .attr("ry", "30px");
+
+  var leftOffsetText = condWidth / 2;
+  var topOffsetText = condHeight / 2 + 5;
+
+  node.append("text")
+    .attr("x", leftOffsetText)
+    .attr("y", topOffsetText)
+    .text(function(d) { return d.condition; });
+
+  d3.selectAll(".condNode").each(function(d, i) {
+    var rect = this.childNodes[0];
+    var text = this.childNodes[1];
+
+    var textWidth = text.getBBox().width;
+    var rectWidth = textWidth + 40;
+    if (textWidth > condWidth - 40) {
+      d3.select(rect).attr("width", rectWidth);
+      d3.select(text).attr("x", (rectWidth / 2));
+    }
+  });
+
+  force.on("tick", function() {
+    link.attr("x1", function(d) { return parseFloat(d.source.x) + condWidth / 2; })
+        .attr("y1", function(d) { return parseFloat(d.source.y) + condHeight / 2; })
+        .attr("x2", function(d) { return parseFloat(d.target.x) + condWidth / 2; })
+        .attr("y2", function(d) { return parseFloat(d.target.y) + condHeight / 2; });
+
+    node.attr("x", function(d) { return d.x; })
+        .attr("y", function(d) { return d.y; });
+
+    node.attr("transform", function(d) {
+        return "translate(" + d.x + ", " + d.y + ")";
+    });
+  });
+});
