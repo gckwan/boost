@@ -214,7 +214,7 @@ function splitSupplementsByType() {
       var type = s[4];
       if (!typesToSupps[type]) {
         typesToSupps[type] = [s];
-      } else {
+      } else if (typesToSupps[type].indexOf(s) == -1) {
         typesToSupps[type].push(s);
       }
     }
