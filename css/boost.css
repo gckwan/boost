@@ -47,7 +47,8 @@ circle {
   cursor: pointer;
 }
 
-circle.titleNode {
+g.titleNode circle, 
+g.titleNode text {
   cursor: default;
 }
 
