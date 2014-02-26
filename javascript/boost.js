@@ -47,7 +47,6 @@ function renderStartScreen() {
     .text(function(d) { return d; });
 
   $(".node").click(function() {
-    console.log('blah');
     displayConditions($(this));
   });
 }
@@ -61,7 +60,7 @@ function removeConditionGraph() {
 
 
 function displayConditions(cat) {
-  $(".conditionGraph").remove();
+  $(".conditionGraph").hide();
   $(".node").not(cat).fadeTo(200, .3);
   $(this).css("opacity", 1);
 
@@ -113,7 +112,9 @@ function displayConditions(cat) {
     .attr("class", "condNode")
     .attr("condition", function(d) { return d.condition; });
 
-  d3.select(".condNode").attr("class", "condNode category");
+  d3.select(".condNode")
+    .attr("class", "condNode category")
+    .attr("category", category);
 
   var condWidth = 150;
   var condHeight = 50;
@@ -168,7 +169,12 @@ function displayConditions(cat) {
   $(".condNode").click(function(e) {
     var condition = $(this).attr("condition");
     e.stopPropagation();  // to prevent svg disappearing
-    displaySupplements(condition);
+    // Do not make title node clickable
+    if (!$(this).hasClass("category") && !$(this).attr("category")) {
+      displaySupplements(condition);
+    } else {
+      removeConditionGraph();
+    }
   });
 }
 
@@ -192,19 +198,19 @@ function displaySupplements(condition) {
 
 function drawTypeGraph(condition, type, index, len) {
   var x = 375;
-  var y = 150;
+  var y = 200;
 
   if (len == 2) {
     if (index == 0) {
       x = 250;
     } else {
-      x = 500;
+      x = 750;
     }
   }
 
   if (len > 2) {
-    x = index % 3 * 250 + 100;
-    y = Math.floor(index / 3) * 200 + 150;
+    x = index % 3 * 500 + 125;
+    y = Math.floor(index / 3) * 400 + 200;
   }
 
   var supplements = conditions[condition][type];
@@ -217,36 +223,52 @@ function drawTypeGraph(condition, type, index, len) {
     links.push({"source": 0, "target": (i + 1)});
   }
 
+  var width = 1500,
+    height = 1000;
+
   var force = d3.layout.force()
     .charge(-1200)
     .linkDistance(function() { return Math.random() * 220 + 100})
     .linkStrength(1)
     .gravity(0.05)
-    .size([1000, 1000]);
+    .size([width, height]);
 
-  var graphSvg = d3.select("#canvas").append("svg")
-    .attr("width", 1000)
-    .attr("height", 1000)
+
+  var graphSvg;
+
+  if ($(".typeGraph").length > 0) {
+    graphSvg = d3.select(".typeGraph");
+  } else {
+    graphSvg = d3.select("#canvas").append("svg")
+    .attr("width", width)
+    .attr("height", height)
     .attr("class", "typeGraph")
     .attr("type", type)
     .style("left", x)
     .style("top", y);
+  }
+   
 
   force
     .nodes(nodes)
     .links(links)
     .start();
 
-  var link = graphSvg.selectAll(".link")
+  var link = graphSvg.selectAll(".link" + index)
     .data(links)
     .enter().append("line")
-    .attr("class", "link");
+    .attr("class", "link" + index);
 
-  var node = graphSvg.selectAll(".suppNode")
+  var node = graphSvg.selectAll(".suppNode" + index)
     .data(nodes)
     .enter().append("g")
-    .attr("class", "suppNode")
+    .attr("class", "suppNode" + index)
     .attr("supplement", function(d) { return d.supplement[0]; });
+
+  d3.select(".suppNode" + index)
+    .attr("class", "titleNode suppNode" + index)
+    .attr("titleNode", true)
+    .attr("transform", "translate(" + x + ", " + y + ")");
 
   var suppWidth = 150;
   var suppHeight = 50;
@@ -258,7 +280,7 @@ function drawTypeGraph(condition, type, index, len) {
 
   node.append("text")
     .attr("y", function(d) { return parseInt(d["supplement"][1]) + 3; })
-    .style("font-size", function(d) { return parseInt(d["supplement"][1]) * 1.5 + 10; })
+    .style("font-size", function(d) { return parseInt(d["supplement"][1]) * 1 + 10; })
     .text(function(d) { return d.supplement[0]; });  
 
   force.on("tick", function() {
@@ -274,13 +296,34 @@ function drawTypeGraph(condition, type, index, len) {
         return "translate(" + d.x + ", " + d.y + ")";
     });
   });
+  addNodeHoverHandlers(index);
+}
+
+function addNodeHoverHandlers(index) {
+  $(".suppNode" + index).hover(function() {
+    if (!d3.select(this).attr("titleNode")) {
+      d3.select(this.childNodes[0])
+        .transition()
+        .duration(500)
+        .attr("r", 110);
+    } else { console.log ('blah'); }
+  }, function() {
+      d3.select(this.childNodes[0])
+        .transition()
+        .duration(500)
+        .attr("r", function(d, i) { return 30 + (d["supplement"][1] * 10)});   
+  });
+}
+
+
+function addBackClickHandler() {
+  $(".back").click(function() {
+    $(".back").hide();
+    $(".typeGraph").remove();
+    $(".categoryGraph").show();
+    removeConditionGraph();
+  });
 }
 
 renderStartScreen();
-
-$(".back").click(function() {
-  $(".back").hide();
-  $(".typeGraph").remove();
-  $(".node").unbind("click");
-  renderStartScreen();
-})
+addBackClickHandler();

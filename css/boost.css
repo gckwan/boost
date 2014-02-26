@@ -41,10 +41,14 @@ rect.condition:hover {
   pointer-events: none;
 }
 
-.suppNode circle {
+circle {
   stroke: white;
   stroke-width: 3;
   cursor: pointer;
+}
+
+circle.titleNode {
+  cursor: default;
 }
 
 .category rect,
