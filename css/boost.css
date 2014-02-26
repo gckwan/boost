@@ -1,5 +1,5 @@
 html {
-  background-image: url('../crossword.png');
+  background-image: url('../skulls.png');
   font-family: 'Varela Round', sans-serif;
 }
 
@@ -41,6 +41,12 @@ rect.condition:hover {
   pointer-events: none;
 }
 
+.suppNode circle {
+  stroke: white;
+  stroke-width: 3;
+  cursor: pointer;
+}
+
 .category rect,
 .category rect:hover {
   fill: steelblue;
@@ -70,4 +76,8 @@ h2 {
   position: absolute;
   left: 50%;
   margin-left: -750px;
+}
+
+.typeGraph {
+  position: absolute;
 }
