@@ -118,3 +118,53 @@ h2 {
 .supplementLabel {
   fill: black;
 }
+
+.legend {
+  position: absolute;
+  display: block;
+  left: 50%;
+  top: 100px;
+  /*background: #f8f6e0;*/
+  margin-left: 350px;
+  padding: 10px 15px;
+  border-radius: 15px;
+/*  border: 3px solid white;*/
+  opacity: .8;
+}
+
+.indicators {
+  text-align: center;
+}
+
+.evidence {
+  display: block;
+  margin-bottom: 33px;
+  text-align: center;
+}
+
+.weak {
+  font-size: 11px;
+}
+
+.strong {
+  margin-left: 60px;
+  font-size: 11px;
+}
+
+.evidenceSvg {
+  position: absolute;
+  margin-top: -100px;
+  max-height: 100px;
+}
+
+.opacity {
+  display: block;
+  margin-top: 10px;
+  margin-left: 30px;
+  margin-bottom: 7px;
+  font-size: 11px;
+}
+
+.evidenceCircle {
+  cursor: default;
+}
